@@ -5,7 +5,7 @@
       <AdTitle>Post-roll Ad</AdTitle>
       <Creatives>
         <Creative>
-          <Linear skipoffset="00:00:10">
+          <Linear>
             <Duration>00:00:15</Duration>
             <MediaFiles>
               <!-- Replace with your post-roll ad video URL -->

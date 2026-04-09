@@ -5,7 +5,7 @@
       <AdTitle>Pre-roll Ad</AdTitle>
       <Creatives>
         <Creative>
-          <Linear skipoffset="00:00:10">
+          <Linear>
             <Duration>00:00:15</Duration>
             <MediaFiles>
               <!-- Replace with your pre-roll ad video URL -->
