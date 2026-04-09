@@ -112,9 +112,10 @@
     const SKIP_AFTER_SECONDS = 10;   // skip button appears after this many seconds
     const MIDROLL_AT_SECOND  = 60;   // mid-roll plays at this second of the main video
 
-    const VAST_PREROLL  = '/vast-pre.xml';
-    const VAST_MIDROLL  = '/vast-mid.xml';
-    const VAST_POSTROLL = '/vast-post.xml';
+    const BASE = window.location.origin;
+    const VAST_PREROLL  = BASE + '/vast-pre.xml';
+    const VAST_MIDROLL  = BASE + '/vast-mid.xml';
+    const VAST_POSTROLL = BASE + '/vast-post.xml';
     // ───────────────────────────────────────────────────────────────────────────
 
     const player = videojs('main-player', {
