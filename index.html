@@ -191,10 +191,11 @@
     skipBtn.addEventListener('click', () => {
       if (!skipUnlocked) return;
       try {
-        player.ima.adContainerDiv.style.display = 'none';
-        player.ima.adsManager.stop();
+        const adsManager = player.ima.getAdsManager();
+        if (adsManager) adsManager.stop();
       } catch (e) { /* IMA not ready */ }
       resetAdUI();
+      player.ads.endLinearAdMode();
       player.play();
     });
 
