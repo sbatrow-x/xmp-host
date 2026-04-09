@@ -1,0 +1,25 @@
+{
+  "headers": [
+    {
+      "source": "/vast.xml",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://imasdk.googleapis.com"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, OPTIONS"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        }
+      ]
+    }
+  ]
+}
