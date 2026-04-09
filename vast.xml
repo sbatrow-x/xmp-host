@@ -1,0 +1,27 @@
+<VAST version="3.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Ad id="123456">
+    <InLine>
+      <AdSystem>Sample Ad Server</AdSystem>
+      <AdTitle>Sample Video Ad</AdTitle>
+      <Creatives>
+        <Creative>
+          <Linear>
+            <Duration>00:00:15</Duration>
+            <TrackingEvents>
+              <Tracking event="start">![CDATA[//tracking.url/start]]</Tracking>
+              <Tracking event="complete">![CDATA[//tracking.url/complete]]</Tracking>
+            </TrackingEvents>
+            <VideoClicks>
+              <ClickThrough>![CDATA[https://bunny.net]]</ClickThrough>
+            </VideoClicks>
+            <MediaFiles>
+              <MediaFile delivery="progressive" type="video/mp4" width="1280" height="720">
+                ![CDATA[https://pedro-main.b-cdn.net/ads.mp4]]
+              </MediaFile>
+            </MediaFiles>
+          </Linear>
+        </Creative>
+      </Creatives>
+    </InLine>
+  </Ad>
+</VAST>
