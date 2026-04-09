@@ -4,43 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TV App</title>
+
+  <!-- Video.js -->
+  <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+  <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+
+  <!-- videojs-contrib-ads (required by IMA plugin) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs.ads.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs.ads.css" rel="stylesheet">
+
+  <!-- Google IMA SDK -->
+  <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+
+  <!-- videojs-ima -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.1/videojs.ima.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.1/videojs.ima.css" rel="stylesheet">
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
     .player-wrapper {
-      position: relative;
       width: 100%;
       max-width: 960px;
-      padding-top: 56.25%;
     }
-    iframe {
-      border: 0;
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
+
+    /* Override Video.js to fill wrapper */
+    .video-js {
+      width: 100% !important;
+      aspect-ratio: 16/9;
+      height: auto !important;
     }
-    #ad-overlay {
+
+    /* Custom skip button */
+    #custom-skip {
+      display: none;
       position: absolute;
       bottom: 60px;
       right: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
-      pointer-events: none;
-      z-index: 10;
-    }
-    #ad-timer {
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      padding: 5px 10px;
-      border-radius: 3px;
-    }
-    #skip-btn {
-      background: rgba(0,0,0,0.75);
+      z-index: 9999;
+      background: rgba(0,0,0,0.8);
       color: #fff;
       font-family: Arial, sans-serif;
       font-size: 14px;
@@ -48,53 +51,167 @@
       border: 1px solid #fff;
       border-radius: 3px;
       cursor: pointer;
-      pointer-events: all;
-      display: none;
     }
-    #skip-btn:hover { background: rgba(255,255,255,0.2); }
+    #custom-skip:hover { background: rgba(255,255,255,0.2); }
+
+    /* Ad countdown label */
+    #ad-countdown {
+      display: none;
+      position: absolute;
+      bottom: 60px;
+      right: 16px;
+      z-index: 9999;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      padding: 5px 10px;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    /* Ad label top-left */
+    #ad-label {
+      display: none;
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 9999;
+      background: rgba(255,165,0,0.85);
+      color: #000;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 3px;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-  <div class="player-wrapper">
-    <iframe
-      id="player"
-      src="https://player.mediadelivery.net/embed/634629/05884145-e4cf-4dea-98dd-3c85fc529182?autoplay=true&loop=false&muted=true&preload=true&responsive=true"
-      loading="lazy"
-      allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
-      allowfullscreen="true">
-    </iframe>
-    <div id="ad-overlay">
-      <div id="ad-timer">Ad: 15s</div>
-      <button id="skip-btn" onclick="skipAd()">Skip Ad &#x276F;</button>
-    </div>
+  <div class="player-wrapper" style="position:relative;">
+
+    <video id="main-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" playsinline>
+      <!-- 
+        Replace the src below with your HLS (.m3u8) or MP4 URL.
+        HLS is recommended for TV (adaptive bitrate).
+        Example HLS:  https://your-cdn.com/stream/playlist.m3u8
+        Example MP4:  https://your-cdn.com/video/main.mp4
+      -->
+      <source src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" type="application/x-mpegURL">
+    </video>
+
+    <div id="ad-label">AD</div>
+    <div id="ad-countdown"></div>
+    <button id="custom-skip">Skip Ad &#x276F;</button>
+
   </div>
 
   <script>
-    const AD_DURATION = 15;
-    const timerEl = document.getElementById('ad-timer');
-    const skipBtn = document.getElementById('skip-btn');
-    const overlay = document.getElementById('ad-overlay');
-    const playerEl = document.getElementById('player');
+    // ─── CONFIG ────────────────────────────────────────────────────────────────
+    const SKIP_AFTER_SECONDS = 10;   // skip button appears after this many seconds
+    const MIDROLL_AT_SECOND  = 60;   // mid-roll plays at this second of the main video
 
-    let remaining = AD_DURATION;
-    let adActive = true;
+    const VAST_PREROLL  = '/vast-pre.xml';
+    const VAST_MIDROLL  = '/vast-mid.xml';
+    const VAST_POSTROLL = '/vast-post.xml';
+    // ───────────────────────────────────────────────────────────────────────────
 
-    const interval = setInterval(() => {
-      if (!adActive) return;
-      remaining--;
-      if (remaining > 0) {
-        timerEl.textContent = 'Ad: ' + remaining + 's';
-      } else {
-        timerEl.style.display = 'none';
-        skipBtn.style.display = 'block';
-        clearInterval(interval);
+    const player = videojs('main-player', {
+      autoplay: true,
+      muted: true,
+      controls: true,
+      fluid: true,
+      html5: {
+        vhs: { overrideNative: true },
+        nativeAudioTracks: false,
+        nativeVideoTracks: false
       }
-    }, 1000);
+    });
 
-    function skipAd() {
-      adActive = false;
-      overlay.style.display = 'none';
+    const skipBtn      = document.getElementById('custom-skip');
+    const countdownEl  = document.getElementById('ad-countdown');
+    const adLabel      = document.getElementById('ad-label');
+
+    let adPlaying      = false;
+    let skipUnlocked   = false;
+    let countdownTimer = null;
+    let midrollDone    = false;
+    let postrollDone   = false;
+
+    // ─── IMA plugin init ───────────────────────────────────────────────────────
+    player.ima({
+      adTagUrl: VAST_PREROLL,
+      disableFlashAds: true,
+      showControlsForJSAds: false
+    });
+
+    // ─── Ad started ───────────────────────────────────────────────────────────
+    player.on('ads-ad-started', () => {
+      adPlaying    = true;
+      skipUnlocked = false;
+      adLabel.style.display    = 'block';
+      countdownEl.style.display = 'block';
+      skipBtn.style.display    = 'none';
+
+      let elapsed = 0;
+      countdownEl.textContent = 'Skip in ' + SKIP_AFTER_SECONDS + 's';
+
+      clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        elapsed++;
+        const remaining = SKIP_AFTER_SECONDS - elapsed;
+        if (remaining > 0) {
+          countdownEl.textContent = 'Skip in ' + remaining + 's';
+        } else {
+          clearInterval(countdownTimer);
+          countdownEl.style.display = 'none';
+          skipBtn.style.display     = 'block';
+          skipUnlocked = true;
+        }
+      }, 1000);
+    });
+
+    // ─── Ad ended ─────────────────────────────────────────────────────────────
+    player.on('ads-ad-ended', resetAdUI);
+    player.on('adserror',     resetAdUI);
+
+    function resetAdUI() {
+      adPlaying = false;
+      clearInterval(countdownTimer);
+      adLabel.style.display     = 'none';
+      countdownEl.style.display = 'none';
+      skipBtn.style.display     = 'none';
     }
+
+    // ─── Skip button ──────────────────────────────────────────────────────────
+    skipBtn.addEventListener('click', () => {
+      if (!skipUnlocked) return;
+      try {
+        player.ima.adContainerDiv.style.display = 'none';
+        player.ima.adsManager.stop();
+      } catch (e) { /* IMA not ready */ }
+      resetAdUI();
+      player.play();
+    });
+
+    // ─── Mid-roll trigger ─────────────────────────────────────────────────────
+    player.on('timeupdate', () => {
+      if (midrollDone || adPlaying) return;
+      if (player.currentTime() >= MIDROLL_AT_SECOND) {
+        midrollDone = true;
+        player.ima.changeAdTag(VAST_MIDROLL);
+        player.ima.requestAds();
+      }
+    });
+
+    // ─── Post-roll trigger ────────────────────────────────────────────────────
+    player.on('ended', () => {
+      if (postrollDone) return;
+      postrollDone = true;
+      player.ima.changeAdTag(VAST_POSTROLL);
+      player.ima.requestAds();
+    });
   </script>
 </body>
 </html>

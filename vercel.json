@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/vast.xml",
+      "source": "/vast(.*).xml",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
