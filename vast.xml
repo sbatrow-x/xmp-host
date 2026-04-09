@@ -7,10 +7,6 @@
         <Creative>
           <Linear skipoffset="00:00:15">
             <Duration>00:00:15</Duration>
-            <TrackingEvents>
-              <Tracking event="start"><![CDATA[//tracking.url/start]]></Tracking>
-              <Tracking event="complete"><![CDATA[//tracking.url/complete]]></Tracking>
-            </TrackingEvents>
             <MediaFiles>
               <MediaFile delivery="progressive" type="video/mp4" width="1280" height="720"><![CDATA[https://pedro-main.b-cdn.net/ads.mp4]]></MediaFile>
             </MediaFiles>

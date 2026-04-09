@@ -94,9 +94,6 @@
     function skipAd() {
       adActive = false;
       overlay.style.display = 'none';
-      // Reload player without ad tag to skip
-      const src = playerEl.src;
-      playerEl.src = src.includes('?') ? src + '&skipAd=1' : src + '?skipAd=1';
     }
   </script>
 </body>
