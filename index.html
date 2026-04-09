@@ -9,16 +9,16 @@
   <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
   <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
-  <!-- videojs-contrib-ads (required by IMA plugin) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs.ads.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs.ads.css" rel="stylesheet">
-
-  <!-- Google IMA SDK -->
+  <!-- Google IMA SDK (must load before videojs-ima) -->
   <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
 
+  <!-- videojs-contrib-ads (required by videojs-ima) -->
+  <link href="https://unpkg.com/videojs-contrib-ads@6.9.0/dist/videojs.ads.css" rel="stylesheet">
+  <script src="https://unpkg.com/videojs-contrib-ads@6.9.0/dist/videojs.ads.min.js"></script>
+
   <!-- videojs-ima -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.1/videojs.ima.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.1/videojs.ima.css" rel="stylesheet">
+  <link href="https://unpkg.com/videojs-ima@1.11.1/dist/videojs.ima.css" rel="stylesheet">
+  <script src="https://unpkg.com/videojs-ima@1.11.1/dist/videojs.ima.min.js"></script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -139,11 +139,13 @@
     let midrollDone    = false;
     let postrollDone   = false;
 
-    // ─── IMA plugin init ───────────────────────────────────────────────────────
-    player.ima({
-      adTagUrl: VAST_PREROLL,
-      disableFlashAds: true,
-      showControlsForJSAds: false
+    // ─── IMA plugin init (inside ready to ensure plugin is registered) ─────────
+    player.ready(function() {
+      player.ima({
+        adTagUrl: VAST_PREROLL,
+        disableFlashAds: true,
+        showControlsForJSAds: false
+      });
     });
 
     // ─── Ad started ───────────────────────────────────────────────────────────
